@@ -1,3 +1,7 @@
+var redis = require('redis'),
+    client = redis.createClient(),
+    qclient = redis.createClient();
+client.monitor();
 var port = process.argv[2];
 if(!port) {
   port = 3001;
@@ -10,35 +14,30 @@ server.listen(port);
 app.get('/', function(req, res) {
     res.sendfile(__dirname + '/index.html');
   });
-var mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/benzinga');
-var db = mongoose.connection;
-var counterSchema = mongoose.Schema({
-site: String,
-hash: String,
-nid: Number,
-day: String,
-count: Number
-});
-var Counter = mongoose.model('Counter', counterSchema);
+
 
 io.sockets.on('connection', function(socket) {
-    Counter.find({}, function(err, docs) {
-      if(err) {
-        console.log(err);
-      } 
-      for(var i = 0; i < docs.length; i++) {
-        socket.emit('data', docs[i]);
-      }
+    console.log('connection');
+    qclient.zrange('RecentHitsCount', 0, -1, function(err, reply) {
+        reply.forEach(function(rep, i) {
+            console.log('fr');
+            qclient.zscore('RecentHitsCount', rep, function(err, re) {
+                console.log('zsc');
+                var j = JSON.parse(rep);
+                console.log('jprs');
+                j['count'] = re;
+                socket.emit('data',j);
+            });console.log('aaa');
+        });
+    }); 
+    client.on('monitor', function(time, args) {
+        console.log('monitor', args);
+        if(args[0] == 'zincrby') {
+            var j = JSON.parse(args[3]);
+            socket.emit('update',j );
+        } else if(args[0] == 'zrem' && args[1] == 'RecentHitsCount') {
+            var j = JSON.parse(args[2]);
+            socket.emit('delete', j);
+        }
     });
-  setInterval(function() {
-    Counter.find({}, function(err, docs) {
-      if(err) {
-        console.log(err);
-      } 
-      for(var i = 0; i < docs.length; i++) {
-        socket.emit('data', docs[i]);
-      }
-    });
-  }, 1000*15);
 });

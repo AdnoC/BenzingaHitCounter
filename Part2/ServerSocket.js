@@ -12,7 +12,7 @@ var app = require('express')(),
     io = require('socket.io').listen(server);
 server.listen(port);
 app.get('/', function(req, res) {
-    res.sendfile(__dirname + '/index.html');
+    res.sendfile(__dirname + '/total_view.html');
   });
 
 

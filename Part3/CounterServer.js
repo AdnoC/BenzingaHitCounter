@@ -64,21 +64,52 @@ exports.run = function(){
         });*/
         client.zadd('RecentHits', new Date().getTime(), objS);
         client.zcard('RecentHits', function(err, reply) {
-            if(reply > REDIS_CACHE_SIZE) {
-                var excess = reply - REDIS_CACHE_SIZE;
-                console.log('Too much in Redis: ' + excess);
-                    client.zrange('RecentHits', 0, excess - 1, function(err, reply) {
-                        if(reply instanceof Array) {
-                            for(var inde = 0; inde < reply.length; inde++){
-                                client.zrem('RecentHitsCount', reply[inde]);
-                                client.zrem('RecentHits', reply[inde]);
-                            }
-                        } else {
-                            client.zrem('RecentHitsCount', reply);
-                            client.zrem('RecentHits', reply);
-                        }
-                    });
-            }
+            client.zcard('LivePages', function(err, lpSize) {
+                var totalRCS = REDIS_CACHE_SIZE + parseInt(lpSize);
+                if(reply > totalRCS) {
+                    var excess = reply - totalRCS;
+                    console.log('Too much in Redis: ' + excess);
+                        client.zrange('RecentHits', 0, excess - 1, function(err, reply) {
+                            client.zrange('LivePages', 0, -1, function(err, pages) {
+                                console.log(pages);
+                                if(reply instanceof Array) {
+                                    loop:
+                                    for(var inde = 0; inde < reply.length; inde++){
+                                        if(pages) {
+                                            var jso = JSON.parse(reply[inde]);
+                                            if(pages instanceof Array) {
+                                                for(var pindex = 0; pindex < pages.length; pindex++) {
+                                                    if(jso['hash'] == pages[pindex]) {
+                                                        continue loop; //If it is in the keep alive set, don't remove
+                                                    }
+                                                }
+                                            } else if(jso['hash'] == pages[pindex]) {
+                                                    continue loop;
+                                            }
+                                        }
+                                        client.zrem('RecentHitsCount', reply[inde]);
+                                        client.zrem('RecentHits', reply[inde]);
+                                    }
+                                } else {
+                                    if(pages) {
+                                        var jso = JSON.parse(reply);
+                                        if(pages instanceof Array) {
+                                            for(var pindex = 0; pindex < pages.length; pindex++) {
+                                                if(jso['hash'] == pages[pindex]) {
+                                                    return; //If it is in the keep alive set, don't remove
+                                                }
+                                            }
+                                        } else if(jso['hash'] == pages[pindex]) {
+                                            return;
+                                        }
+                                    }
+                                    client.zrem('RecentHitsCount', reply);
+                                    client.zrem('RecentHits', reply);
+                                }
+                            });
+                        });
+                }
+            });
         });
         client.zincrby('RecentHitsCount', 1, objS);
         

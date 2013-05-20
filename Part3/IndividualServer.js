@@ -35,7 +35,10 @@ exports.run = function() {
         });
         client.on('monitor', function(time, args) {
             if(args[0] == 'zincrby' && args[1] == 'RecentHitsCount') {
-                socket.emit('update', 1);
+                var j = JSON.parse(args[2]);
+                if(j['hash'] == url) {
+                    socket.emit('update', 1);
+                }
             }
         });
 

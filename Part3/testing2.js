@@ -8,10 +8,14 @@ var c = 0;
 var iter = 0;
 var p = process.argv[2];
 if(!p){
-  p = 3;
+  p = 2;
+}
+var p2 = process.argv[3];
+if(!p2) {
+    p2 = 3;
 }
 function send(i) {
-     if(i >= 2000) {
+     if(i >= Math.pow(10, p) * p2) {
          return;
      }
      if(i%100==0){

@@ -71,7 +71,6 @@ exports.run = function(){
                     console.log('Too much in Redis: ' + excess);
                         client.zrange('RecentHits', 0, excess - 1, function(err, reply) {
                             client.zrange('LivePages', 0, -1, function(err, pages) {
-                                console.log(pages);
                                 if(reply instanceof Array) {
                                     loop:
                                     for(var inde = 0; inde < reply.length; inde++){

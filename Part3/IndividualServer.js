@@ -35,7 +35,8 @@ exports.run = function() {
         });
         client.on('monitor', function(time, args) {
             if(args[0] == 'zincrby' && args[1] == 'RecentHitsCount') {
-                var j = JSON.parse(args[2]);
+                var j = JSON.parse(args[3]);
+                console.log("COMPARE", j, url);
                 if(j['hash'] == url) {
                     socket.emit('update', 1);
                 }

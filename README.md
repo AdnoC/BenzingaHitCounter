@@ -24,7 +24,14 @@ Part 3:
     memory. It also sends page counts to pages that have their count viewed.
     page_view.js (I'm not sure why I changed my naming conventions) is
     a javascript file to be loaded at the end of a html file. It posts to the
-    counter server. If verified, it also displays real-time page view count.
+    counter server. If verified, it also displays real-time page view count
+    (currently always assumes verified).
     Main.js runs all neccesary files.
     package.json was added when experimenting with Heroku, but is nice in that
     it allows for easy installation of required node.js packages.
+
+Part 4:
+    page_view:Now also creates cookies which it checks for to prevent multiple
+    refreshes to count.
+    jquery-cookie-master: A plugin from Github for jQuery to allow for easy
+    creation and reading of cookies.

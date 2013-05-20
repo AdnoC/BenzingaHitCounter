@@ -3,7 +3,8 @@ BenzingaHitCounter
 Part 1 contains code to watch for GET or POST requests and stores the data about them in a mongo database.  
 Part 2 contains code to pull information from the database and sends it to a webpage to be displayed.  
 Part 3 contains code from both part 1 and 2. It also handles single-page counts.  
-Files marked OLD do not use Redis, while those without the marking usually do.  
+Part 4 contains code that prevents multiple refreshes from creating page views. It will also implement verification before showing page views.  
+Files marked OLD (in parts 1 & 2) do not use Redis, while those without the marking usually do.  
 
 #Part 1 & 2:  
 ###Main Files:  

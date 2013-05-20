@@ -1,0 +1,181 @@
+<html>
+<head>
+<script src='socket.io/socket.io.js'></script>
+<script src='http://code.jquery.com/jquery-1.9.1.js'></script>
+<script>
+var socket = io.connect('http://localhost');
+var ids = [];
+var nextID = 0;
+var docs = [];
+var currentOrder = 0;
+var changed = false;
+//0 is natural(order recieved), 1 is site, 2 is hash, 3 is nid, 4 is day, 5 is count, + is increasing, - is decreasing
+socket.on('data', function(data) {
+  console.log('data', data);
+  var count = data['count'];
+  //TODO Change this because it no longer gets update from 'data' emits
+    ids.push(nextID);
+    data['_id'] = nextID;
+    docs.push(data);
+    var tabl = $("#viewingTable").append(objToTR(data));
+    $("#viewingTable tr:last").attr('id', nextID++);
+});
+
+socket.on('update', function(data) {
+  console.log('update', data);
+  var index = indexOf(docs, data);
+  changed = true;
+  if(index > -1){ //If already knows of the input and the data sent is just an update, not a new occurence
+      console.log('Update at ' + index);
+      docs[index]['count']++;
+      $('#'+ids[index]+' :last-child').html(docs[index]['count']);
+  } else {  //If new
+    console.log('New');
+    data['_id'] = nextID;
+    ids.push(nextID);
+    data['count'] = 1;
+    docs.push(data);
+    var tabl = $("#viewingTable").append(objToTR(data));
+    $("#viewingTable tr:last").attr('id', nextID++);
+  }
+});
+
+socket.on('delete', function(data) {
+    console.log('delete', data);
+    var index = indexOf(docs, data);
+    var id = ids[index];
+    $('#'+id).remove();
+    docs.splice(index, 1);
+    ids.splice(index, 1);
+});
+
+
+function indexOf(arr, obj) {
+    for(var i = 0; i < arr.length; i++) {
+        var ea = arr[i];
+        if(ea['site'] == obj['site'] && ea['hash'] == obj['hash'] && ea['nid'] == obj['nid'] && ea['day'] == obj['day']) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+setInterval(function() {
+      if(changed && Math.abs(currentOrder) == 5) {
+        changeOrder(0);
+        changed = false;
+      }
+  }, 1000*30);
+
+
+function objToTR(ob) {
+  var ret = [];
+  ret.push('<tr><td>');
+  ret.push(ob['site']);
+  ret.push('</td><td>');
+  ret.push(ob['hash']);
+  ret.push('</td><td>');
+  ret.push(ob['nid']);
+  ret.push('</td><td>');
+  ret.push(ob['day']);
+  ret.push('</td><td>');
+  ret.push(ob['count']);
+  ret.push('</td></tr>');
+  return ret.join("");
+}
+function changeOrder(no) {
+  if(no == currentOrder) {
+    currentOrder = -no;
+  } else if(no != 0){
+    currentOrder = no;
+  }
+  var o = getOrder();
+  console.log('------------------------------------');
+  for(var i = 0; i < o.length; i++) {
+  console.log(o[i]);
+    $('#viewingTable tr:nth-child('+(i+1)+')').after($("#"+o[i]['_id']));
+  }
+
+}
+
+//Returns an array of docs in order specified.
+function getOrder() {
+  if(currentOrder == 0) {
+    return [];
+  }
+  var index = Math.abs(currentOrder) - 1;
+  var temp = docs.slice(0);
+  temp = quicksort(temp, index);
+  if(currentOrder < 0) {
+    return temp.reverse();
+  } else {
+    return temp;
+  }
+}
+
+
+function quicksort(arr, ind) {
+  if(arr.length <= 1) {
+    return arr;
+  }
+  var keys = ['site', 'hash','nid', 'day', 'count'];
+  var pivot = Math.floor(Math.random() * arr.length);
+  var low = [], high = [];
+  for(var i = 0; i < arr.length; i++) {
+    if(i == pivot) {
+      continue;
+    }
+    if(arr[i][keys[ind]] <= arr[pivot][keys[ind]]) {
+      low.push(arr[i]);
+    } else {
+      high.push(arr[i]);
+    }
+  }
+  var l = quicksort(low, ind);
+  var h = quicksort(high, ind);
+  l.push(arr[pivot]);
+  l.push.apply(l, h);
+  return l;
+
+}
+</script>
+<title>Website Hit Viewer</title>
+<style>
+tr
+{
+  padding-top:10px;
+  padding-bottom:10px;
+  padding-left:10px;
+  padding-right:10px;
+}
+button
+{
+  background-color:transparent;
+  border:0;
+  padding:0;
+  padding-top:10px;
+  padding-bottom:10px;
+  padding-left:10px;
+  padding-right:10px;
+}
+*
+{
+  text-align:center;
+  margin-left:auto;
+  margin-right:auto;
+}
+</style>
+</head>
+<body>
+<h1>Website Hit Viewer</h1>
+<table id='viewingTable' border='2'>
+<tr id='columnNames'>
+<td><button onclick='changeOrder(1);'>Site</button></td>
+<td><button onclick='changeOrder(2);'>Hash</button></td>
+<td><button onclick='changeOrder(3);'>NId</button></td>
+<td><button onclick='changeOrder(4);'>Day</button></td>
+<td><button onclick='changeOrder(5);'>Count</button></td>
+</tr>
+</table>
+</body>
+</html>

@@ -55,3 +55,4 @@ exports.run = function() {
         });
     });
 }
+exports.run();

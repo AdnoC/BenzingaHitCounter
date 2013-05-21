@@ -14,7 +14,10 @@ exports.run = function() {
         io = require('socket.io').listen(server);
     server.listen(port);
     console.log('Listening on port ' + port);
-    app.get('/test.html', function(req, res) {
+    app.get('/', function(req, res) {
+        res.sendfile(__dirname + '/ref.html');
+    });
+    app.get('/test.html', function(req, res) { //Give files when asked.
         res.sendfile(__dirname + '/test_page_view.html');
       });
     app.get('/page_view.js', function(req, res) {
@@ -24,4 +27,4 @@ exports.run = function() {
         res.sendfile(__dirname + '/jquery-cookie-master/jquery.cookie.js');
     });
 }
-
+exports.run();

@@ -8,22 +8,6 @@ exports.run = function() {
     var client = redis.createClient();
     var qclient = redis.createClient();
     client.monitor();
-    var mongoose = require('mongoose');
-    if(!mongoose.connection){
-        mongoose.connect('mongodb://localhost/benzinga', 'getting started');
-    }
-    var Counter = mongoose.model('Counter');
-    if(!Counter) {
-        var db = mongoose.connection;
-        var counterSchema = mongoose.Schema({ //Setting up the mongoos model/schema system
-            site: String,
-            hash: String,
-            nid: Number,
-            day: String,
-            count: Number
-        });
-        Counter = mongoose.model('Counter', counterSchema);
-    }
     var port = process.argv[2];
     if(!port) {
       port = 3002;
@@ -37,12 +21,16 @@ exports.run = function() {
         console.log(socket.handshake.url, socket.handshake.query, socket.handshake.headers);
         var url = socket.handshake.headers['referer'];
         qclient.zincrby('LivePages', 1, url);
-        Counter.find({hash: url}, 'count', function(err, docs) { //Send the number
-//of view for the page for each date.
-            console.log('FOUND DOCS', docs);
-            docs.forEach(function(ea, i) {
-                console.log("SENDING COUNT OF " + ea['count']);
-                socket.emit('initial', ea['count']);
+        qclient.zrange('RecentHitsCount', 0, -1, function(err, reply) { //TODO Get from Mongo past page counts, use redis only for increments.
+            reply.forEach(function(ea, i) {
+                var j = JSON.parse(ea);
+                if(j['hash'] == url) {
+                    console.log('Found entry, ' + j);
+                    qclient.zscore('RecentHitsCount', ea, function(err, rep) {
+                        console.log('Hits = ' + rep);
+                        socket.emit('initial', rep);
+                    });
+                }
             });
         });
         client.on('monitor', function(time, args) {

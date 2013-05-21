@@ -6,6 +6,7 @@
  * If a user is verified it also adds a view count display to the bottom of the
  * page.
  */
+var newView = false;
 var ref = document.referrer; //If the user navigates to the page from a new tab,
 //referrer will be undefined, so set it to a unique value for purposes of
 //cookie checking.
@@ -15,6 +16,7 @@ if(!ref) {
 var cVal = $.cookie(document.location.href+'RefreshProtection');
 console.log('Cookie[' + cVal + '] Ref[' + ref + ']');
 if(!cVal || cVal != ref) { //If the cookie doesn't exist or they came from a different page
+    newView = true;
     $.post('http://localhost:3000/von-count');  //Send to the counter server a message that this page got a hit.
 }
 //Set the cookie with where they came from as its contents. If they refresh,
@@ -27,6 +29,12 @@ $.cookie(document.location.href+'RefreshProtection', ref, {expires: date});
 if(1==1) { //TODO Add verification. Currently always runs.
     console.log('Verified, loading page view count');
     var socket = io.connect('http://localhost:3002'); //Connect to the server
+    if(newView) { //Normally the view count would be one short, as it would not
+//include THIS view in its count. This accounts for this view. It does not do 
+//anything on refreshes, because Mongo might have been updated by
+//then.
+        socket.emit('newView', true);
+    }
 
     var html = '<div>Page Views: <b></b></div>'; //Add a div to the end ofthe page
 //whith which to display the view count.

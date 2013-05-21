@@ -24,7 +24,7 @@ exports.run = function(){
     count: Number
     });
     var REDIS_CACHE_SIZE = 100; //Number of entries allowed in Redis.
-    var CACHE_FLUSH_TIMER = 30; //Number of seconds between flushing the cache.
+    var CACHE_FLUSH_TIMER = 5; //Number of seconds between flushing the cache.
     Counter = mongoose.model('Counter', counterSchema);
     client.on('error', function(err) {
       console.log('Error', err);

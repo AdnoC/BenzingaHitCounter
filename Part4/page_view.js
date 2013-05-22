@@ -5,7 +5,14 @@
  * multiple tabs with diferrent document.referrer values are used.
  * If a user is verified it also adds a view count display to the bottom of the
  * page.
- */
+ * Requires the following script tags.
+ *     <script src='socket.io/socket.io.js'></script>
+ *     <script src='http://code.jquery.com/jquery-1.9.1.js'></script>
+ *     <script src='/jquery-cookie-master/jquery.cookie.js'></script>
+ *   jquery-cookie can be found here: https://github.com/carhartl/jquery-cookie
+ *   socket.io can also be included with the url: "http://<uri:port>/socket.io/socket.io.js"
+ *
+*/
 var newView = false;
 var ref = document.referrer; //If the user navigates to the page from a new tab,
 //referrer will be undefined, so set it to a unique value for purposes of

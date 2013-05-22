@@ -4,7 +4,7 @@
  */
 //require('./ServerSocket.js').run(); //As this was already finished, no need
 //to run it.
-require('./CounterServer.js')
+require('./CounterServer.js'); //Always needs to be run before IndividualServer
 require('./soc.js');
 require('./IndividualServer.js');
 

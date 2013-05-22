@@ -23,12 +23,12 @@ exports.run = function(){
     day: String,
     count: Number
     });
-    var REDIS_CACHE_SIZE = 100; //Number of entries allowed in Redis.
-    var CACHE_FLUSH_TIMER = 5; //Number of seconds between flushing the cache.
     Counter = mongoose.model('Counter', counterSchema);
     client.on('error', function(err) {
       console.log('Error', err);
     });
+    var REDIS_CACHE_SIZE = 100; //Number of entries allowed in Redis.
+    var CACHE_FLUSH_TIMER = 5; //Number of seconds between flushing the cache.
 
     app.use('/von-count', function(req, res) { //When any http request is sent to the path /von-count...
         console.log("Regieved" + req.method);
@@ -60,17 +60,6 @@ exports.run = function(){
 
         var objS = JSON.stringify(obj); //Stringifies the object because Redis 
 //only takes strings, not javascript obects
-        /*client.get(objS, function(err, reply) {
-          if(err) {
-            console.log('Error', err);
-          }
-          if(!reply) {  //If it isn't in redis
-            client.set(objS, '0');
-          } else {
-            client.incr(objS);
-          }
-            client.expire(objS, 60*60*24);  //Sets the key to expire in a day(24 hours)
-        });*/
         client.zadd('RecentHits', new Date().getTime(), objS); //Add to Redis 
 //with a timestamp, or update the timestamp
         client.zcard('RecentHits', function(err, reply) { //Get the number of 

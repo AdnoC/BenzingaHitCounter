@@ -9,22 +9,8 @@ exports.run = function() {
     var qclient = redis.createClient();
     client.monitor();
     var mongoose = require('mongoose');
-    if(!mongoose.connection){
-        mongoose.connect('mongodb://localhost/benzinga', 'getting started');
-    }
     var Counter = mongoose.model('Counter');
-    if(!Counter) {
-        var db = mongoose.connection;
-        var counterSchema = mongoose.Schema({ //Setting up the mongoos model/schema system
-            site: String,
-            hash: String,
-            nid: Number,
-            day: String,
-            count: Number
-        });
-        Counter = mongoose.model('Counter', counterSchema);
-    }
-    var port = process.argv[2];
+var port = process.argv[2];
     if(!port) {
       port = 3002;
     }

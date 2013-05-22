@@ -11,36 +11,43 @@ var counterSchema = mongoose.Schema({ //Setting up the mongoos model/schema syst
 });
 var Counter = mongoose.model('Counter', counterSchema);
 
-var mysql = require('mysql');
+var mysql = require('mysql'); //Set up MySQL
 var nConnection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     database: 'benzinga'
 });
-var uConnection = mysql.createConnection({
+var uConnection = mysql.createConnection({ //2 connections are used because I don't
+//want to load all 2 million rows into node all at once, and you cannot query
+//the database on the same connection as you are streaming rows.
     host: 'localhost',
     user: 'root',
     database: 'benzinga'
 });
 nConnection.connect();
 uConnection.connect();
-var nQuery = nConnection.query('SELECT * FROM node_counter LIMIT 10');
-nQuery.on('result', function(nRow) {
-    nConnection.pause();
+var nQuery = nConnection.query('SELECT * FROM node_counter LIMIT 10'); // Begin
+//the query, getting rows from node_counter. //Remove "LIMIT 10" to have it 
+//transfer the whole database.
+nQuery.on('result', function(nRow) { //Begin the syntax for streaming query rows.
+    nConnection.pause(); //Pause the connection while its working on each individual
+//row.
     var str = 'SELECT * FROM url_alias WHERE src=\'taxonomy/term/'+nRow['nid']+'\'';
     console.log(str);
-    uConnection.query(str, function(err, uRow) { 
+    uConnection.query(str, function(err, uRow) { //Get the rows from url_alias 
+//that go with the nid
         if(err) {throw err;}
         console.log('N', nRow);
         console.log('U', uRow);
 
-        if(uRow.length == 0) {
+        if(uRow.length == 0) { //If no rows matched
             console.log('------------------------------------------------------NULL-----------------------');
-            uRow = {dst: ('node/'+ nRow['nid'])};
+            uRow = {dst: ('node/'+ nRow['nid'])}; //Set dst to a value.
         } else {
-            uRow = uRow[0];
+            uRow = uRow[0]; //Else only use the first result from the query. Arrays
+//Are always returned from the query, even if they only have one element.
         }
-        var cont = nRow['totalcount'];
+        var cont = nRow['totalcount']; //Get values for each of the fields for Mongo.
 
         var dateR = new Date(parseInt(nRow['timestamp']) * 1000);
         var year = dateR.getUTCFullYear();
@@ -59,12 +66,12 @@ nQuery.on('result', function(nRow) {
         var hsh = st + '/' + uRow['dst'];
 
         var obj = {count: cont, date: day, nid: nd, site: st, hash: hsh};
-        Counter.create(obj, function(err) {
+        Counter.create(obj, function(err) { //Save the object, and once its done
             if(err) throw err;
 
             console.log(obj);
 
-            nConnection.resume();
+            nConnection.resume(); //Continue onto the next row.
         });
     });
 });

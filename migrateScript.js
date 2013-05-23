@@ -26,7 +26,7 @@ var uConnection = mysql.createConnection({ //2 connections are used because I do
 });
 nConnection.connect();
 uConnection.connect();
-var nQuery = nConnection.query('SELECT * FROM node_counter LIMIT 10'); // Begin
+var nQuery = nConnection.query('SELECT * FROM node_counter'); // Begin
 //the query, getting rows from node_counter. //Remove "LIMIT 10" to have it 
 //transfer the whole database.
 nQuery.on('result', function(nRow) { //Begin the syntax for streaming query rows.

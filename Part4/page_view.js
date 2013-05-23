@@ -36,12 +36,6 @@ $.cookie(document.location.href+'RefreshProtection', ref, {expires: date});
 if(1==1) { //TODO Add verification. Currently always runs.
     console.log('Verified, loading page view count');
     var socket = io.connect('http://localhost:3002'); //Connect to the server
-    if(newView) { //Normally the view count would be one short, as it would not
-//include THIS view in its count. This accounts for this view. It does not do 
-//anything on refreshes, because Mongo might have been updated by
-//then.
-        socket.emit('newView', true);
-    }
 
     var html = '<div>Page Views: <b></b></div>'; //Add a div to the end ofthe page
 //whith which to display the view count.
@@ -59,4 +53,10 @@ if(1==1) { //TODO Add verification. Currently always runs.
         console.log('Upd: data[' + data + '] count[' + count + ']');
         $('#page_view_display').html(count);
     });
+    if(newView) { //Normally the view count would be one short, as it would not
+//include THIS view in its count. This accounts for this view. It does not do 
+//anything on refreshes, because Mongo might have been updated by
+//then.
+        count++;
+    }
 }

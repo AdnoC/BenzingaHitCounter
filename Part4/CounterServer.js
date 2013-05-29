@@ -7,135 +7,135 @@
 var hits = [],
     cache = [],
     Counter;
-exports.run = function(){
-    var express = require('express'); //Setting up the requisites.
-    var app = express();
-    app.use(express.bodyParser());
-    var redis = require('redis');
-    var client = redis.createClient();
-    var mongoose = require('mongoose');
-    mongoose.connect('mongodb://localhost/benzinga');
-    var db = mongoose.connection;
-    var counterSchema = mongoose.Schema({ //Setting up the mongoos model/schema system
-    site: String,
-    hash: String,
-    nid: Number,
-    day: String,
-    count: Number
-    });
-    Counter = mongoose.model('Counter', counterSchema);
-    client.on('error', function(err) {
-      console.log('Error', err);
-    });
-    var REDIS_CACHE_SIZE = 100; //Number of entries allowed in Redis.
-    var CACHE_FLUSH_TIMER = 5; //Number of seconds between flushing the cache.
+var express = require('express'); //Setting up the requisites.
+var app = express();
+app.use(express.bodyParser());
+var redis = require('redis');
+var client = redis.createClient();
+var mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost/benzinga');
+var db = mongoose.connection;
+var counterSchema = mongoose.Schema({ //Setting up the mongoos model/schema system
+site: String,
+hash: String,
+nid: Number,
+day: String,
+count: Number
+});
+Counter = mongoose.model('Counter', counterSchema);
+client.on('error', function(err) {
+  console.log('Error', err);
+});
+var REDIS_CACHE_SIZE = 100; //Number of entries allowed in Redis.
+var CACHE_FLUSH_TIMER = 5; //Number of seconds between flushing the cache.
 
-    app.use('/von-count', function(req, res) { //When any http request is sent to the path /von-count...
-        console.log("Regieved" + req.method);
-        var nd = req.param('nid'); //Takes data from the request. Some of these were added purely for
-        //help when testing and should be removed when actually deployed.
-        if(!nd){
-          nd = null;
-          }
-        var st = req.param('site');
-        if(!st){
-          st = req.get('Origin');
-        }
-        var hsh = req.param('hash');
-        if(!hsh){
-          hsh = req.get('Referrer');
-        }
-        var dateR = new Date(); //Getting the date
-        var year = dateR.getUTCFullYear();
-        var month = dateR.getUTCMonth();
-        if(month.toString().length == 1){
-          month = '0' + month;
-        }
-        var day = dateR.getUTCDate();
-        if(day.toString().length == 0) {
-          day = '0' + day;
-        }
-        var date = year + '-' + month + '-' + day;
-        var obj = {site: st, hash: hsh, nid: nd, day: date};
+app.use('/von-count', function(req, res) { //When any http request is sent to the path /von-count...
+    console.log("Regieved" + req.method);
+    var nd = req.param('nid'); //Takes data from the request. Some of these were added purely for
+    //help when testing and should be removed when actually deployed.
+    if(!nd){
+      nd = null;
+      }
+    var st = req.param('site');
+    if(!st){
+      st = req.get('Origin');
+    }
+    var hsh = req.param('hash');
+    if(!hsh){
+      hsh = req.get('Referrer');
+    }
+    var dateR = new Date(); //Getting the date
+    var year = dateR.getUTCFullYear();
+    var month = dateR.getUTCMonth();
+    if(month.toString().length == 1){
+      month = '0' + month;
+    }
+    var day = dateR.getUTCDate();
+    if(day.toString().length == 0) {
+      day = '0' + day;
+    }
+    var date = year + '-' + month + '-' + day;
+    var obj = {site: st, hash: hsh, nid: nd, day: date};
 
-        var objS = JSON.stringify(obj); //Stringifies the object because Redis 
+    var objS = JSON.stringify(obj); //Stringifies the object because Redis 
 //only takes strings, not javascript obects
-        client.zadd('RecentHits', new Date().getTime(), objS); //Add to Redis 
+    client.zadd('RecentHits', new Date().getTime(), objS); //Add to Redis 
 //with a timestamp, or update the timestamp
-        client.zcard('RecentHits', function(err, reply) { //Get the number of 
+    client.zcard('RecentHits', function(err, reply) { //Get the number of 
 //entries in the set
-            client.zcard('LivePages', function(err, lpSize) { //Get the number
+        client.zcard('LivePages', function(err, lpSize) { //Get the number
 //of pages where the count is currently being viewed
-                var totalRCS = REDIS_CACHE_SIZE + parseInt(lpSize);
-                if(reply > totalRCS) { //If there are too many entries in the set
-                    var excess = reply - totalRCS;
-                    console.log('Too much in Redis: ' + excess);
-                        client.zrange('RecentHits', 0, excess - 1, function(err, reply) {
+            var totalRCS = REDIS_CACHE_SIZE + parseInt(lpSize);
+            if(reply > totalRCS) { //If there are too many entries in the set
+                var excess = reply - totalRCS;
+                console.log('Too much in Redis: ' + excess);
+                    client.zrange('RecentHits', 0, excess - 1, function(err, reply) {
 //Get the n oldest entries, where n is the number of extra entries
-                            client.zrange('LivePages', 0, -1, function(err, pages) {
+                        client.zrange('LivePages', 0, -1, function(err, pages) {
 //Get all the pages that have their count being viewed. If one of the entries
 //match the privious query, don't remove it, otherwise romove  all the
 //previously queried entried.
-                                if(reply instanceof Array) {
-                                    loop:
-                                    for(var inde = 0; inde < reply.length; inde++){
-                                        if(pages) {
-                                            var jso = JSON.parse(reply[inde]);
-                                            if(pages instanceof Array) {
-                                                for(var pindex = 0; pindex < pages.length; pindex++) {
-                                                    if(jso['hash'] == pages[pindex]) {
-                                                        continue loop; //If it is in the keep alive set, don't remove
-                                                    }
-                                                }
-                                            } else if(jso['hash'] == pages[pindex]) {
-                                                    continue loop;
-                                            }
-                                        }
-                                        client.zrem('RecentHitsCount', reply[inde]);
-                                        client.zrem('RecentHits', reply[inde]);
-                                    }
-                                } else {
+                            if(reply instanceof Array) {
+                                loop:
+                                for(var inde = 0; inde < reply.length; inde++){
                                     if(pages) {
-                                        var jso = JSON.parse(reply);
+                                        var jso = JSON.parse(reply[inde]);
                                         if(pages instanceof Array) {
                                             for(var pindex = 0; pindex < pages.length; pindex++) {
                                                 if(jso['hash'] == pages[pindex]) {
-                                                    return; //If it is in the keep alive set, don't remove
+                                                    continue loop; //If it is in the keep alive set, don't remove
                                                 }
                                             }
                                         } else if(jso['hash'] == pages[pindex]) {
-                                            return;
+                                                continue loop;
                                         }
                                     }
-                                    client.zrem('RecentHitsCount', reply);
-                                    client.zrem('RecentHits', reply);
+                                    client.zrem('RecentHitsCount', reply[inde]);
+                                    client.zrem('RecentHits', reply[inde]);
                                 }
-                            });
+                            } else {
+                                if(pages) {
+                                    var jso = JSON.parse(reply);
+                                    if(pages instanceof Array) {
+                                        for(var pindex = 0; pindex < pages.length; pindex++) {
+                                            if(jso['hash'] == pages[pindex]) {
+                                                return; //If it is in the keep alive set, don't remove
+                                            }
+                                        }
+                                    } else if(jso['hash'] == pages[pindex]) {
+                                        return;
+                                    }
+                                }
+                                client.zrem('RecentHitsCount', reply);
+                                client.zrem('RecentHits', reply);
+                            }
                         });
-                }
-            });
+                    });
+            }
         });
-        client.zincrby('RecentHitsCount', 1, objS); //Increase the count of the page
-        
+    });
+    client.zincrby('RecentHitsCount', 1, objS); //Increase the count of the page
+    
 
-        var index = indexOf(cache, obj); //Look for the page in the cache and
+    var index = indexOf(cache, obj); //Look for the page in the cache and
 //increase its hit count.
-        if(index != -1) {
-          hits[index]++;
-        } else {
-          hits.push(1);
-          cache.push(obj);
-        }
-        res.header("Access-Control-Allow-Origin", "*"); //Send an essentially 
+    if(index != -1) {
+      hits[index]++;
+    } else {
+      hits.push(1);
+      cache.push(obj);
+    }
+    res.header("Access-Control-Allow-Origin", "*"); //Send an essentially 
 //empty response (204 is the code for no content).
-        res.send(204);
-        });
+    res.send(204);
+    });
 
-    setInterval(flushCache, 1000*15); //Set the cache to be periodically flushed
+setInterval(flushCache, 1000*15); //Set the cache to be periodically flushed
 //to MongoDB.
-    app.listen(3000); //Set the app to listen on the port
-    console.log('Listening on 3000')
-}
+app.listen(3000); //Set the app to listen on the port
+console.log('Listening on 3000')
+require('./IndividualServer.js');
+require('./soc.js');
 
 /**
  * Just an implementation of indexOf to find the index of the object in an
@@ -176,4 +176,3 @@ function flushCache() {
   }
 }
 
-exports.run();

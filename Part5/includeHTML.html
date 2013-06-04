@@ -1,0 +1,16 @@
+<!-- Need a tag with the id 'bzcount'. The tag should be a text display tag (p, 
+b, h1, etc.), since any tag within the bzcount tag will be replaced with the number
+of views. 
+If you don't want to display page views, don't include an id of 'bzcount', 
+however all the javascript files need to be included regardless. -->
+<p id='bzcount'>
+</p>
+
+<!-- Include the required javascript packages, as well as the javascript
+file itself -->
+<!-- socket.io has a wierd way of hiding its client javascript file. It can be located
+at node_modules/socket.io/node_modules/socket.io-client/dist/socket.io.js, but the
+src can be changed to wherever socket.io.js is. -->
+<script src='/node_modules/socket.io/node_modules/socket.io-client/dist/socket.io.js'></script>
+<script src='http://code.jquery.com/jquery-1.9.1.js'></script>
+<script src='/page_view.js'></script>

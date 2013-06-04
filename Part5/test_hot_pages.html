@@ -1,0 +1,47 @@
+<html>
+<head>
+<title>Hot Pages</title>
+<style>
+tr
+{
+  padding-top:10px;
+  padding-bottom:10px;
+  padding-left:10px;
+  padding-right:10px;
+}
+button
+{
+  background-color:transparent;
+  border:0;
+  padding:0;
+  padding-top:10px;
+  padding-bottom:10px;
+  padding-left:10px;
+  padding-right:10px;
+}
+*
+{
+  text-align:center;
+  margin-left:auto;
+  margin-right:auto;
+}
+</style>
+</head>
+<body>
+<h1>Hot Pages</h1>
+<table id='viewingTable' border='2'>
+<tr id='columnNames'>
+<td><button onclick='changeOrder(1);'>Site</button></td>
+<td><button onclick='changeOrder(2);'>Number of People</button></td>
+</tr>
+</table>
+<p>
+This is a test
+<b id='hot_pages'></b>
+of things.
+</p>
+</body>
+<script src='/node_modules/socket.io/node_modules/socket.io-client/dist/socket.io.js'></script>
+<script src='http://code.jquery.com/jquery-1.9.1.js'></script>
+<script src='/hot_pages.js'></script>
+</html>

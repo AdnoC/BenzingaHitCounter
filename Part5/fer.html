@@ -1,0 +1,30 @@
+<html>
+    <!-- Need to include the required javascript packages, as well as the javascript
+    file itself -->
+    <!-- socket.io has a wierd way of hiding its client javascript file. It can be located
+    at node_modules/socket.io/node_modules/socket.io-client/dist/socket.io.js, but the
+    src can be changed to wherever socket.io.js is. -->
+    <script src='/node_modules/socket.io/node_modules/socket.io-client/dist/socket.io.js'></script>
+    <!-- If the page just needs to increase the view count, not display it, only add
+    the html below -->
+    <script src='http://code.jquery.com/jquery-1.9.1.js'></script>
+    <script>
+       $.ajax({
+            url: 'http://localhost:8082/von-count',
+            success: function(a,b,c) {
+                console.log(a, b, c);
+                $('.a').html(a);
+            },
+            xhrFields: {
+                withCredentials: true
+            }
+        });
+      /*$.get('http://localhost:8082/von-count', function(a,b,c) {
+            console.log(a, b, c);
+            $('.a').html(a);
+        });*/
+    </script>
+    <p class='a'>
+    Loading...
+    </p>
+</html>

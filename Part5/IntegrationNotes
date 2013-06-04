@@ -1,0 +1,7 @@
+CounterServer.js is the entry point for the counter.
+app.js is the entry point for the actual app.
+Use routes.js to require the counter and set up Express routing.
+Still need to add verification before showing veiw counter in page_view.
+Change CounterServer and IndividualServer to simplify increments, if possible.
+jquery-cookie-master will need to be moved to the server, and page_view editted to 
+    reflect the move, or something could be added to routes (not sure if will work).

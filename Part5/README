@@ -1,0 +1,14 @@
+CounterServer.js is the entry point for the view counter, and is included in ../routes.js
+IndividualServer.js sends live view counts to webpages, and is run from CounterServer.js
+ServerSocket.js sends live view counts for recently viewed pages to a special page
+includeHTML.html contains all that needs to be added to pages to see live view 
+    counts, and send an update for the view count. See the file itself for specific
+    details of what is needed for each task.
+jquery-cookie-master is just a needed include for includeHTML
+page_view.js is needed for includeHTML, and does everything.
+ref.html is just a file so to test multiple referrers.
+soc.js is just a simple webserver used for testing.
+socket.io.js was copied from node_modules/socket.io/node_modules/socket.io-client/dist/socket.io.js,
+    and is needed for includeHTML
+test_page_view.html is just a sample webpage for testing.
+total_view.html connects to ServerSocket.html to show view counts or recently viewed pages.

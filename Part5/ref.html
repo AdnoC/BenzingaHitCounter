@@ -1,0 +1,18 @@
+<html>
+    <!-- Need to include the required javascript packages, as well as the javascript
+    file itself -->
+    <!-- socket.io has a wierd way of hiding its client javascript file. It can be located
+    at node_modules/socket.io/node_modules/socket.io-client/dist/socket.io.js, but the
+    src can be changed to wherever socket.io.js is. -->
+    <script src='/node_modules/socket.io/node_modules/socket.io-client/dist/socket.io.js'></script>
+    <!-- If the page just needs to increase the view count, not display it, only add
+    the html below -->
+    <script src='http://code.jquery.com/jquery-1.9.1.js'></script>
+    <script src='/page_view.js'></script>
+
+    <a href='/test.html'>CLICK MEH</a><br /><br /><br /><br />
+    <a href='/test2.html'>ME TOO!!!</a>
+    <br /><br /><br /><br /> <br /><br /><br /><br />
+    <a href='http://localhost:3001/pages_viewed.html'>click me please</a><br />
+    <a href='http://localhost:3003/'>if you wouldn't mind, i can be clicked</a>
+</html>
